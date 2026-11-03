@@ -3,6 +3,7 @@
 #### Advanced Niri WM Installation Script by ####
 #### Shell Ninja ( https://github.com/shell-ninja ) ####
 
+
 # --------------- color defination
 red="\e[1;31m"
 green="\e[1;32m"
@@ -52,6 +53,7 @@ packages=(
 )
 
 for pkg in "${packages[@]}"; do
+
     if sudo pacman -Q "$pkg" &> /dev/null; then
         printf "${magenta}[ Skip ] ${end} Skipping $pkg, it's already installed...\n"
     else
@@ -60,6 +62,7 @@ for pkg in "${packages[@]}"; do
             printf "${cyan}::${end} Successfully installed ${cyan}$pkg${end}...\n"
         fi
     fi
+
 done
 
 sleep 1 && clear && fn_welcome && sleep 1
@@ -79,7 +82,9 @@ if [[ -f "$cache_file" ]]; then
     # Check if Nvidia prompt has no value set
     if [[ -z "$install_browser" ]]; then
         msg err "User prompt was not given properly. Please run the script again..."
+
         fn_ask "Would you like to run the script agaain?" "Yes, sure." "No, close it."
+
         if [[ $? -eq 0 ]]; then
             gum spin --spinner dot --title "Starting the script again.." -- sleep 3
             rm -f "$cache_file"
@@ -111,6 +116,7 @@ else
 
     msg att "Choose prompts. Press 'ESC' to skip"
     fn_ask_prompts 
+
     echo
     echo
 
@@ -136,8 +142,10 @@ else
     fn_shell
 fi
 
+
 source "$cache_file"
 source "$shell_cache"
+
 
 # ====================================== #
 # =========  script execution  ========= #
@@ -145,7 +153,9 @@ source "$shell_cache"
 
 scripts_dir="$dir/scripts"
 chmod +x "$scripts_dir"/* 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
+
 clear
+
 
 # ================================= #
 # =========  run scripts  ========= #
@@ -157,13 +167,16 @@ if [[ -n "$aur" ]]; then
     msg dn "AUR helper $aur was located... Moving on" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
     sleep 1
 else
+    
     if hostnamectl | grep -q 'Chassis: vm'; then
         msg att "Virtual machine was detected, 'Yay' will be installed."
+
         touch "$cache_dir/aur"
         echo "yay" > "$cache_dir/aur"
     else
         touch "$cache_dir/aur"
         msg ask "Which AUR helper would you like to install?"
+        # msg att "If you are in a virtual machine, please choose ${cyan}'yay'${end}"
         choice=$(gum choose \
             --cursor.foreground "#00FFFF" \
             --item.foreground "#fff" \
@@ -177,15 +190,15 @@ else
             echo "yay" > "$cache_dir/aur"
         fi
     fi
+
     "$scripts_dir/00-repo.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 fi
 
-# ---------------- Installing Niri and other core packages
+
+# ---------------- Installing hyprland and other packages
 "$scripts_dir/2-niri.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 
-# ---------------- CÁC SCRIPT ĐÃ BỊ VÔ HIỆU HÓA ĐỂ TRÁNH CÀI RÁC ----------------
-
-# "$scripts_dir/3-other_packages.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log") # Đã tắt: Script này chứa nhiều gói KDE, Nodejs, v.v.
+"$scripts_dir/3-other_packages.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 "$scripts_dir/6-fonts.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 
 # only for installing browser
@@ -201,43 +214,73 @@ if [[ "$install_browser" =~ ^[Yy]$ ]]; then
         )
         echo "$choice" > "$cache_dir/browser"
     fi
+
     "$scripts_dir/7-browser.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 else
     msg skp "Skipping installing browser.."
 fi
 
-# "$scripts_dir/9-sddm.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log") # Đã tắt: Bạn không dùng Display Manager SDDM
+"$scripts_dir/9-sddm.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 "$scripts_dir/10-xdg_dp.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 
+
 # ---------------- Scripts with user agreement
-# if [[ "$install_vs_code" =~ ^[Yy]$ ]]; then
-#     "$scripts_dir/8-vs_code.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log") # Đã tắt: Không cài VS Code qua script
+if [[ "$install_vs_code" =~ ^[Yy]$ ]]; then
+    "$scripts_dir/8-vs_code.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
+fi
+
+
+# if [[ "$have_nvidia" =~ ^[Yy]$ ]]; then
+#     "$scripts_dir/nvidia.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 # fi
+
 
 if [[ "$setup_for_bluetooth" =~ ^[Yy]$ ]]; then
     "$scripts_dir/bluetooth.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 fi
 
+
 if [[ "$install_zsh" =~ ^[Yy]$ ]]; then
     "$scripts_dir/zsh.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 fi
+
 
 if [[ "$setup_bash" =~ ^[Yy]$ ]]; then
     "$scripts_dir/bash.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 fi
 
+
 if [[ "$install_fish" =~ ^[Yy]$ ]]; then
     "$scripts_dir/fish.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 fi
 
+
 # ----------------- Uninstall some packages
 "$scripts_dir/11-uninstall.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 
+
 # ---------------- Themes and dotfiles (hyprconf)
+
 sleep 1 && clear
+
+# msg ask "Choose which config you want to setup: " && sleep 1
+# msg att "The 'hyprconf' config will change colors according to the current wallpaper using ${cyan}pywal${end}, inspired by JaKooLit's cofig." && echo
+# msg att "The 'hyprconf-v2' config hase some pre-configured themes and color pallets, inspired by HyDE."
+#
+# choice=$(gum choose \
+#     --limit=1 \
+#     --cursor.foreground "#00FFFF" \
+#     --item.foreground "#fff" \
+#     --selected.foreground "#00FF00" \
+#     "hyprconf" "hyprconf-v2"
+# )
+# touch "$cache_dir/dotfiles"
+# echo "$choice" > "$cache_dir/dotfiles"
+# sleep 1 && clear
 
 "$scripts_dir/themes.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
 "$dir/dotfiles/setup.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
+
 
 # ----------------- check if laptop or not
 if [[ -d "/sys/class/power_supply/BAT0" ]]; then
@@ -247,7 +290,9 @@ else
 fi
 
 "$scripts_dir/${system}.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
+
 sleep 1 && clear
+
 
 # =================================== #
 # =========  final checkup  ========= #
@@ -259,6 +304,7 @@ gum spin --spinner dot \
 clear
 
 "$scripts_dir/12-final.sh" 2>&1 | tee -a >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$log")
+
 
 # =================================== #
 # =========  system reboot  ========= #
